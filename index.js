@@ -53,6 +53,8 @@ const playerAngleInitial = Math.PI;
 let playerAngleMoved;
 let accelerate = false; // Is the player accelerating
 let decelerate = false; // Is the player decelerating
+let turnLeft = false;
+let turnRight = false;
 
 let otherVehicles = [];
 let ready;
@@ -845,6 +847,14 @@ window.addEventListener("keydown", function (event) {
     decelerate = true;
     return;
   }
+  if (event.key == "ArrowLeft") {
+    turnLeft = true;
+    return;
+  }
+  if (event.key == "ArrowRight") {
+    turnRight = true;
+    return;
+  }
   if (event.key == "R" || event.key == "r") {
     reset();
     return;
@@ -857,6 +867,14 @@ window.addEventListener("keyup", function (event) {
   }
   if (event.key == "ArrowDown") {
     decelerate = false;
+    return;
+  }
+  if (event.key == "ArrowLeft") {
+    turnLeft = false;
+    return;
+  }
+  if (event.key == "ArrowRight") {
+    turnRight = false;
     return;
   }
 });
@@ -892,6 +910,7 @@ function animation(timestamp) {
 
 function movePlayerCar(timeDelta) {
   const playerSpeed = getPlayerSpeed();
+  /*
   playerAngleMoved -= playerSpeed * timeDelta;
 
   const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
@@ -903,6 +922,9 @@ function movePlayerCar(timeDelta) {
   playerCar.position.y = playerY;
 
   playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
+  */
+  playerCar.position.x += playerSpeed.sideways;
+  playerCar.position.y += playerSpeed.forward;
 }
 
 function moveOtherVehicles(timeDelta) {
@@ -924,9 +946,17 @@ function moveOtherVehicles(timeDelta) {
 }
 
 function getPlayerSpeed() {
-  if (accelerate) return speed * 2;
-  if (decelerate) return speed * 0.5;
-  return speed;
+  let speedObject = {
+    forward: 0,
+    sideways: 0,
+  }
+  if (accelerate == decelerate) speedObject.forward = 0;
+  else if (accelerate) speedObject.forward = 1;
+  else if (decelerate) speedObject.forward = -1;
+  if (turnLeft == turnRight) speedObject.sideways = 0;
+  else if (turnLeft) speedObject.sideways = -1;
+  else if (turnRight) speedObject.sideways = 1;
+  return speedObject;
 }
 
 function addVehicle() {
