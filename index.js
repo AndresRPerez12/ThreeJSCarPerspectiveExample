@@ -99,7 +99,7 @@ const aspectRatio = window.innerWidth / window.innerHeight;
 const cameraWidth = 960;
 const cameraHeight = cameraWidth / aspectRatio;
 
-const camera = new THREE.OrthographicCamera(
+let camera = new THREE.OrthographicCamera(
   cameraWidth / -2, // left
   cameraWidth / 2, // right
   cameraHeight / 2, // top
@@ -859,6 +859,17 @@ window.addEventListener("keydown", function (event) {
     reset();
     return;
   }
+  if (event.key == "T" || event.key == "t") {
+    // camera.position.set(playerCar.position.x, playerCar.position.y, 100);
+    // camera.lookAt(0, 0, 0);
+    camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
+    const deltaX = 150 * Math.cos(playerCar.rotation.z);
+    const deltaY = 150 * Math.sin(playerCar.rotation.z);
+    camera.position.set(playerCar.position.x-deltaX, playerCar.position.y-deltaY, 150);
+    camera.lookAt(playerCar.position.x+deltaX, playerCar.position.y+deltaY, 50);
+    renderer.render(scene, camera);
+    return;
+  }
 });
 window.addEventListener("keyup", function (event) {
   if (event.key == "ArrowUp") {
@@ -916,8 +927,8 @@ function movePlayerCar(timeDelta) {
   playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
 
   const forwardMovement = playerSpeed.forward * timeDelta;
-  const deltaX = forwardMovement * Math.cos(totalPlayerAngle- Math.PI / 2);
-  const deltaY = forwardMovement * Math.sin(totalPlayerAngle- Math.PI / 2);
+  const deltaX = forwardMovement * Math.cos(playerCar.rotation.z);
+  const deltaY = forwardMovement * Math.sin(playerCar.rotation.z);
   playerCar.position.x += deltaX;
   playerCar.position.y += deltaY;
   
