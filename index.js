@@ -47,16 +47,16 @@ const config = {
 };
 
 let score;
-const speed = 0.0017;
+const baseSpeedForward = 0.3;
+const baseSpeedSideways = 0.004;
 
 const playerAngleInitial = Math.PI;
 let playerAngleMoved;
 let accelerate = false; // Is the player accelerating
 let decelerate = false; // Is the player decelerating
-let turnLeft = false;
-let turnRight = false;
+let turnLeft = false; // Is player turning left
+let turnRight = false; // Is player turning right
 
-let otherVehicles = [];
 let ready;
 let lastTimestamp;
 
@@ -162,19 +162,19 @@ function reset() {
   scoreElement.innerText = "Press UP";
 
   // Remove other vehicles
-  otherVehicles.forEach((vehicle) => {
-    // Remove the vehicle from the scene
-    scene.remove(vehicle.mesh);
+  // otherVehicles.forEach((vehicle) => {
+  //   // Remove the vehicle from the scene
+  //   scene.remove(vehicle.mesh);
 
-    // If it has hit-zone helpers then remove them as well
-    if (vehicle.mesh.userData.hitZone1)
-      scene.remove(vehicle.mesh.userData.hitZone1);
-    if (vehicle.mesh.userData.hitZone2)
-      scene.remove(vehicle.mesh.userData.hitZone2);
-    if (vehicle.mesh.userData.hitZone3)
-      scene.remove(vehicle.mesh.userData.hitZone3);
-  });
-  otherVehicles = [];
+  //   // If it has hit-zone helpers then remove them as well
+  //   if (vehicle.mesh.userData.hitZone1)
+  //     scene.remove(vehicle.mesh.userData.hitZone1);
+  //   if (vehicle.mesh.userData.hitZone2)
+  //     scene.remove(vehicle.mesh.userData.hitZone2);
+  //   if (vehicle.mesh.userData.hitZone3)
+  //     scene.remove(vehicle.mesh.userData.hitZone3);
+  // });
+  // otherVehicles = [];
 
   resultsElement.style.display = "none";
 
@@ -898,9 +898,9 @@ function animation(timestamp) {
   }
 
   // Add a new vehicle at the beginning and with every 5th lap
-  if (otherVehicles.length < (laps + 1) / 5) addVehicle();
+  // if (otherVehicles.length < (laps + 1) / 5) addVehicle();
 
-  moveOtherVehicles(timeDelta);
+  // moveOtherVehicles(timeDelta);
 
   hitDetection();
 
@@ -910,40 +910,50 @@ function animation(timestamp) {
 
 function movePlayerCar(timeDelta) {
   const playerSpeed = getPlayerSpeed();
-  /*
-  playerAngleMoved -= playerSpeed * timeDelta;
-
+  
+  playerAngleMoved += playerSpeed.sideways * timeDelta;
   const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
-
-  const playerX = Math.cos(totalPlayerAngle) * trackRadius - arcCenterX;
-  const playerY = Math.sin(totalPlayerAngle) * trackRadius;
-
-  playerCar.position.x = playerX;
-  playerCar.position.y = playerY;
-
   playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
-  */
-  playerCar.position.x += playerSpeed.sideways;
-  playerCar.position.y += playerSpeed.forward;
+
+  const forwardMovement = playerSpeed.forward * timeDelta;
+  const deltaX = forwardMovement * Math.cos(totalPlayerAngle- Math.PI / 2);
+  const deltaY = forwardMovement * Math.sin(totalPlayerAngle- Math.PI / 2);
+  playerCar.position.x += deltaX;
+  playerCar.position.y += deltaY;
+  
+  // playerAngleMoved -= playerSpeed * timeDelta;
+
+  // const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
+
+  // const playerX = Math.cos(totalPlayerAngle) * trackRadius - arcCenterX;
+  // const playerY = Math.sin(totalPlayerAngle) * trackRadius;
+
+  // playerCar.position.x = playerX;
+  // playerCar.position.y = playerY;
+
+  // playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
+
+  // playerCar.position.x += playerSpeed.sideways;
+  // playerCar.position.y += playerSpeed.forward;
 }
 
-function moveOtherVehicles(timeDelta) {
-  otherVehicles.forEach((vehicle) => {
-    if (vehicle.clockwise) {
-      vehicle.angle -= speed * timeDelta * vehicle.speed;
-    } else {
-      vehicle.angle += speed * timeDelta * vehicle.speed;
-    }
+// function moveOtherVehicles(timeDelta) {
+//   otherVehicles.forEach((vehicle) => {
+//     if (vehicle.clockwise) {
+//       vehicle.angle -= speed * timeDelta * vehicle.speed;
+//     } else {
+//       vehicle.angle += speed * timeDelta * vehicle.speed;
+//     }
 
-    const vehicleX = Math.cos(vehicle.angle) * trackRadius + arcCenterX;
-    const vehicleY = Math.sin(vehicle.angle) * trackRadius;
-    const rotation =
-      vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2);
-    vehicle.mesh.position.x = vehicleX;
-    vehicle.mesh.position.y = vehicleY;
-    vehicle.mesh.rotation.z = rotation;
-  });
-}
+//     const vehicleX = Math.cos(vehicle.angle) * trackRadius + arcCenterX;
+//     const vehicleY = Math.sin(vehicle.angle) * trackRadius;
+//     const rotation =
+//       vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2);
+//     vehicle.mesh.position.x = vehicleX;
+//     vehicle.mesh.position.y = vehicleY;
+//     vehicle.mesh.rotation.z = rotation;
+//   });
+// }
 
 function getPlayerSpeed() {
   let speedObject = {
@@ -951,28 +961,28 @@ function getPlayerSpeed() {
     sideways: 0,
   }
   if (accelerate == decelerate) speedObject.forward = 0;
-  else if (accelerate) speedObject.forward = 1;
-  else if (decelerate) speedObject.forward = -1;
-  if (turnLeft == turnRight) speedObject.sideways = 0;
-  else if (turnLeft) speedObject.sideways = -1;
-  else if (turnRight) speedObject.sideways = 1;
+  else if (accelerate) speedObject.forward = baseSpeedForward;
+  else if (decelerate) speedObject.forward = -baseSpeedForward;
+  if (turnLeft == turnRight || speedObject.forward == 0) speedObject.sideways = 0;
+  else if (turnLeft) speedObject.sideways = baseSpeedSideways;
+  else if (turnRight) speedObject.sideways = -baseSpeedSideways;
   return speedObject;
 }
 
-function addVehicle() {
-  const vehicleTypes = ["car", "truck"];
+// function addVehicle() {
+//   const vehicleTypes = ["car", "truck"];
 
-  const type = pickRandom(vehicleTypes);
-  const speed = getVehicleSpeed(type);
-  const clockwise = Math.random() >= 0.5;
+//   const type = pickRandom(vehicleTypes);
+//   const speed = getVehicleSpeed(type);
+//   const clockwise = Math.random() >= 0.5;
 
-  const angle = clockwise ? Math.PI / 2 : -Math.PI / 2;
+//   const angle = clockwise ? Math.PI / 2 : -Math.PI / 2;
 
-  const mesh = type == "car" ? Car() : Truck();
-  scene.add(mesh);
+//   const mesh = type == "car" ? Car() : Truck();
+//   scene.add(mesh);
 
-  otherVehicles.push({ mesh, type, speed, clockwise, angle });
-}
+//   otherVehicles.push({ mesh, type, speed, clockwise, angle });
+// }
 
 function getVehicleSpeed(type) {
   if (type == "car") {
@@ -1018,85 +1028,85 @@ function hitDetection() {
     playerCar.userData.hitZone2.position.y = playerHitZone2.y;
   }
 
-  const hit = otherVehicles.some((vehicle) => {
-    if (vehicle.type == "car") {
-      const vehicleHitZone1 = getHitZonePosition(
-        vehicle.mesh.position,
-        vehicle.angle,
-        vehicle.clockwise,
-        15
-      );
+  // const hit = otherVehicles.some((vehicle) => {
+  //   if (vehicle.type == "car") {
+  //     const vehicleHitZone1 = getHitZonePosition(
+  //       vehicle.mesh.position,
+  //       vehicle.angle,
+  //       vehicle.clockwise,
+  //       15
+  //     );
 
-      const vehicleHitZone2 = getHitZonePosition(
-        vehicle.mesh.position,
-        vehicle.angle,
-        vehicle.clockwise,
-        -15
-      );
+  //     const vehicleHitZone2 = getHitZonePosition(
+  //       vehicle.mesh.position,
+  //       vehicle.angle,
+  //       vehicle.clockwise,
+  //       -15
+  //     );
 
-      if (config.showHitZones) {
-        vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-        vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
+  //     if (config.showHitZones) {
+  //       vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
+  //       vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
 
-        vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-        vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
-      }
+  //       vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
+  //       vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
+  //     }
 
-      // The player hits another vehicle
-      if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-      if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
+  //     // The player hits another vehicle
+  //     if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
+  //     if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
 
-      // Another vehicle hits the player
-      if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-    }
+  //     // Another vehicle hits the player
+  //     if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
+  //   }
 
-    if (vehicle.type == "truck") {
-      const vehicleHitZone1 = getHitZonePosition(
-        vehicle.mesh.position,
-        vehicle.angle,
-        vehicle.clockwise,
-        35
-      );
+  //   if (vehicle.type == "truck") {
+  //     const vehicleHitZone1 = getHitZonePosition(
+  //       vehicle.mesh.position,
+  //       vehicle.angle,
+  //       vehicle.clockwise,
+  //       35
+  //     );
 
-      const vehicleHitZone2 = getHitZonePosition(
-        vehicle.mesh.position,
-        vehicle.angle,
-        vehicle.clockwise,
-        0
-      );
+  //     const vehicleHitZone2 = getHitZonePosition(
+  //       vehicle.mesh.position,
+  //       vehicle.angle,
+  //       vehicle.clockwise,
+  //       0
+  //     );
 
-      const vehicleHitZone3 = getHitZonePosition(
-        vehicle.mesh.position,
-        vehicle.angle,
-        vehicle.clockwise,
-        -35
-      );
+  //     const vehicleHitZone3 = getHitZonePosition(
+  //       vehicle.mesh.position,
+  //       vehicle.angle,
+  //       vehicle.clockwise,
+  //       -35
+  //     );
 
-      if (config.showHitZones) {
-        vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-        vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
+  //     if (config.showHitZones) {
+  //       vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
+  //       vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
 
-        vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-        vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
+  //       vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
+  //       vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
 
-        vehicle.mesh.userData.hitZone3.position.x = vehicleHitZone3.x;
-        vehicle.mesh.userData.hitZone3.position.y = vehicleHitZone3.y;
-      }
+  //       vehicle.mesh.userData.hitZone3.position.x = vehicleHitZone3.x;
+  //       vehicle.mesh.userData.hitZone3.position.y = vehicleHitZone3.y;
+  //     }
 
-      // The player hits another vehicle
-      if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-      if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
-      if (getDistance(playerHitZone1, vehicleHitZone3) < 40) return true;
+  //     // The player hits another vehicle
+  //     if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
+  //     if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
+  //     if (getDistance(playerHitZone1, vehicleHitZone3) < 40) return true;
 
-      // Another vehicle hits the player
-      if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-    }
-  });
+  //     // Another vehicle hits the player
+  //     if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
+  //   }
+  // });
 
-  if (hit) {
-    if (resultsElement) resultsElement.style.display = "flex";
-    renderer.setAnimationLoop(null); // Stop animation loop
-  }
+  // if (hit) {
+  //   if (resultsElement) resultsElement.style.display = "flex";
+  //   renderer.setAnimationLoop(null); // Stop animation loop
+  // }
 }
 
 window.addEventListener("resize", () => {
