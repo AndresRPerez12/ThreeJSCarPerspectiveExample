@@ -56,6 +56,7 @@ let accelerate = false; // Is the player accelerating
 let decelerate = false; // Is the player decelerating
 let turnLeft = false; // Is player turning left
 let turnRight = false; // Is player turning right
+let inOrthographicView = true;
 
 let ready;
 let lastTimestamp;
@@ -754,15 +755,12 @@ window.addEventListener("keydown", function (event) {
     reset();
     return;
   }
-  if (event.key == "T" || event.key == "t") {
-    // camera.position.set(playerCar.position.x, playerCar.position.y, 100);
-    // camera.lookAt(0, 0, 0);
-    camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
-    const deltaX = 150 * Math.cos(playerCar.rotation.z);
-    const deltaY = 150 * Math.sin(playerCar.rotation.z);
-    camera.position.set(playerCar.position.x-deltaX, playerCar.position.y-deltaY, 150);
-    camera.lookAt(playerCar.position.x+deltaX, playerCar.position.y+deltaY, 50);
-    renderer.render(scene, camera);
+  if (event.key == "C" || event.key == "c") {
+    if( inOrthographicView ) inOrthographicView = false;
+    else{
+      inOrthographicView = true;
+      setUpOrthographicCamera();
+    }
     return;
   }
 });
@@ -827,14 +825,7 @@ function movePlayerCar(timeDelta) {
   playerCar.position.x += deltaX;
   playerCar.position.y += deltaY;
 
-  camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
-  const deltaCameraX = 200 * Math.cos(playerCar.rotation.z);
-  const deltaCameraY = 200 * Math.sin(playerCar.rotation.z);
-  camera.position.set(playerCar.position.x-deltaCameraX, playerCar.position.y-deltaCameraY, 150);
-  camera.up = new THREE.Vector3(0,0,1);
-  camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, 20);
-  camera.updateProjectionMatrix();
-  renderer.render(scene, camera);
+  if(inOrthographicView == false) setUpPerspectiveCamera();
 }
 
 function getPlayerSpeed() {
@@ -849,6 +840,32 @@ function getPlayerSpeed() {
   else if (turnLeft) speedObject.sideways = baseSpeedSideways;
   else if (turnRight) speedObject.sideways = -baseSpeedSideways;
   return speedObject;
+}
+
+function setUpOrthographicCamera(){
+  camera = new THREE.OrthographicCamera(
+    cameraWidth / -2, // left
+    cameraWidth / 2, // right
+    cameraHeight / 2, // top
+    cameraHeight / -2, // bottom
+    50, // near plane
+    700 // far plane
+  );
+  
+  camera.position.set(0, -210, 300);
+  camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
+}
+
+function setUpPerspectiveCamera(){
+  camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
+  const deltaCameraX = 200 * Math.cos(playerCar.rotation.z);
+  const deltaCameraY = 200 * Math.sin(playerCar.rotation.z);
+  camera.position.set(playerCar.position.x-deltaCameraX, playerCar.position.y-deltaCameraY, 150);
+  camera.up = new THREE.Vector3(0,0,1);
+  camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, 20);
+  camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
 }
 
 function getHitZonePosition(center, angle, clockwise, distance) {
