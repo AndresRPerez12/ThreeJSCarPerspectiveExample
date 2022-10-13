@@ -7,14 +7,6 @@ function pickRandom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-// The Pythagorean theorem says that the distance between two points is
-// the square root of the sum of the horizontal and vertical distance's square
-function getDistance(coordinate1, coordinate2) {
-  const horizontalDistance = coordinate2.x - coordinate1.x;
-  const verticalDistance = coordinate2.y - coordinate1.y;
-  return Math.sqrt(horizontalDistance ** 2 + verticalDistance ** 2);
-}
-
 const vehicleColors = [
   0xa52523,
   0xef2d56,
@@ -113,9 +105,9 @@ dirLight.position.set(100, -300, 300);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.width = 1024;
 dirLight.shadow.mapSize.height = 1024;
-dirLight.shadow.camera.left = -400;
-dirLight.shadow.camera.right = 350;
-dirLight.shadow.camera.top = 400;
+dirLight.shadow.camera.left = -800;
+dirLight.shadow.camera.right = 700;
+dirLight.shadow.camera.top = 800;
 dirLight.shadow.camera.bottom = -300;
 dirLight.shadow.camera.near = 100;
 dirLight.shadow.camera.far = 800;
