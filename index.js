@@ -200,14 +200,6 @@ function startGame() {
   }
 }
 
-function positionScoreElement() {
-  const arcCenterXinPixels = (arcCenterX / cameraWidth) * window.innerWidth;
-  scoreElement.style.cssText = `
-    left: ${window.innerWidth / 2 - arcCenterXinPixels * 1.3}px;
-    top: ${window.innerHeight / 2}px
-  `;
-}
-
 function getLineMarkings(mapWidth, mapHeight) {
   const canvas = document.createElement("canvas");
   canvas.width = mapWidth;
@@ -521,8 +513,6 @@ function renderMap(mapWidth, mapHeight) {
   fieldMesh.matrixAutoUpdate = false;
   scene.add(fieldMesh);
 
-  positionScoreElement();
-
   if (config.trees) {
     const tree1 = Tree();
     tree1.position.x = arcCenterX * 1.3;
@@ -681,101 +671,6 @@ function Car() {
   }
 
   return car;
-}
-
-function getTruckFrontTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 32;
-  canvas.height = 32;
-  const context = canvas.getContext("2d");
-
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, 32, 32);
-
-  context.fillStyle = "#666666";
-  context.fillRect(0, 5, 32, 10);
-
-  return new THREE.CanvasTexture(canvas);
-}
-
-function getTruckSideTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 32;
-  canvas.height = 32;
-  const context = canvas.getContext("2d");
-
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, 32, 32);
-
-  context.fillStyle = "#666666";
-  context.fillRect(17, 5, 15, 10);
-
-  return new THREE.CanvasTexture(canvas);
-}
-
-function Truck() {
-  const truck = new THREE.Group();
-  const color = pickRandom(vehicleColors);
-
-  const base = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(100, 25, 5),
-    new THREE.MeshLambertMaterial({ color: 0xb4c6fc })
-  );
-  base.position.z = 10;
-  truck.add(base);
-
-  const cargo = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(75, 35, 40),
-    new THREE.MeshLambertMaterial({ color: 0xffffff }) // 0xb4c6fc
-  );
-  cargo.position.x = -15;
-  cargo.position.z = 30;
-  cargo.castShadow = true;
-  cargo.receiveShadow = true;
-  truck.add(cargo);
-
-  const truckFrontTexture = getTruckFrontTexture();
-  truckFrontTexture.center = new THREE.Vector2(0.5, 0.5);
-  truckFrontTexture.rotation = Math.PI / 2;
-
-  const truckLeftTexture = getTruckSideTexture();
-  truckLeftTexture.flipY = false;
-
-  const truckRightTexture = getTruckSideTexture();
-
-  const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(25, 30, 30), [
-    new THREE.MeshLambertMaterial({ color, map: truckFrontTexture }),
-    new THREE.MeshLambertMaterial({ color }), // back
-    new THREE.MeshLambertMaterial({ color, map: truckLeftTexture }),
-    new THREE.MeshLambertMaterial({ color, map: truckRightTexture }),
-    new THREE.MeshLambertMaterial({ color }), // top
-    new THREE.MeshLambertMaterial({ color }) // bottom
-  ]);
-  cabin.position.x = 40;
-  cabin.position.z = 20;
-  cabin.castShadow = true;
-  cabin.receiveShadow = true;
-  truck.add(cabin);
-
-  const backWheel = Wheel();
-  backWheel.position.x = -30;
-  truck.add(backWheel);
-
-  const middleWheel = Wheel();
-  middleWheel.position.x = 10;
-  truck.add(middleWheel);
-
-  const frontWheel = Wheel();
-  frontWheel.position.x = 38;
-  truck.add(frontWheel);
-
-  if (config.showHitZones) {
-    truck.userData.hitZone1 = HitZone();
-    truck.userData.hitZone2 = HitZone();
-    truck.userData.hitZone3 = HitZone();
-  }
-
-  return truck;
 }
 
 function HitZone() {
@@ -942,24 +837,6 @@ function movePlayerCar(timeDelta) {
   renderer.render(scene, camera);
 }
 
-// function moveOtherVehicles(timeDelta) {
-//   otherVehicles.forEach((vehicle) => {
-//     if (vehicle.clockwise) {
-//       vehicle.angle -= speed * timeDelta * vehicle.speed;
-//     } else {
-//       vehicle.angle += speed * timeDelta * vehicle.speed;
-//     }
-
-//     const vehicleX = Math.cos(vehicle.angle) * trackRadius + arcCenterX;
-//     const vehicleY = Math.sin(vehicle.angle) * trackRadius;
-//     const rotation =
-//       vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2);
-//     vehicle.mesh.position.x = vehicleX;
-//     vehicle.mesh.position.y = vehicleY;
-//     vehicle.mesh.rotation.z = rotation;
-//   });
-// }
-
 function getPlayerSpeed() {
   let speedObject = {
     forward: 0,
@@ -972,34 +849,6 @@ function getPlayerSpeed() {
   else if (turnLeft) speedObject.sideways = baseSpeedSideways;
   else if (turnRight) speedObject.sideways = -baseSpeedSideways;
   return speedObject;
-}
-
-// function addVehicle() {
-//   const vehicleTypes = ["car", "truck"];
-
-//   const type = pickRandom(vehicleTypes);
-//   const speed = getVehicleSpeed(type);
-//   const clockwise = Math.random() >= 0.5;
-
-//   const angle = clockwise ? Math.PI / 2 : -Math.PI / 2;
-
-//   const mesh = type == "car" ? Car() : Truck();
-//   scene.add(mesh);
-
-//   otherVehicles.push({ mesh, type, speed, clockwise, angle });
-// }
-
-function getVehicleSpeed(type) {
-  if (type == "car") {
-    const minimumSpeed = 1;
-    const maximumSpeed = 2;
-    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed);
-  }
-  if (type == "truck") {
-    const minimumSpeed = 0.6;
-    const maximumSpeed = 1.5;
-    return minimumSpeed + Math.random() * (maximumSpeed - minimumSpeed);
-  }
 }
 
 function getHitZonePosition(center, angle, clockwise, distance) {
@@ -1032,86 +881,6 @@ function hitDetection() {
     playerCar.userData.hitZone2.position.x = playerHitZone2.x;
     playerCar.userData.hitZone2.position.y = playerHitZone2.y;
   }
-
-  // const hit = otherVehicles.some((vehicle) => {
-  //   if (vehicle.type == "car") {
-  //     const vehicleHitZone1 = getHitZonePosition(
-  //       vehicle.mesh.position,
-  //       vehicle.angle,
-  //       vehicle.clockwise,
-  //       15
-  //     );
-
-  //     const vehicleHitZone2 = getHitZonePosition(
-  //       vehicle.mesh.position,
-  //       vehicle.angle,
-  //       vehicle.clockwise,
-  //       -15
-  //     );
-
-  //     if (config.showHitZones) {
-  //       vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-  //       vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
-
-  //       vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-  //       vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
-  //     }
-
-  //     // The player hits another vehicle
-  //     if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-  //     if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
-
-  //     // Another vehicle hits the player
-  //     if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-  //   }
-
-  //   if (vehicle.type == "truck") {
-  //     const vehicleHitZone1 = getHitZonePosition(
-  //       vehicle.mesh.position,
-  //       vehicle.angle,
-  //       vehicle.clockwise,
-  //       35
-  //     );
-
-  //     const vehicleHitZone2 = getHitZonePosition(
-  //       vehicle.mesh.position,
-  //       vehicle.angle,
-  //       vehicle.clockwise,
-  //       0
-  //     );
-
-  //     const vehicleHitZone3 = getHitZonePosition(
-  //       vehicle.mesh.position,
-  //       vehicle.angle,
-  //       vehicle.clockwise,
-  //       -35
-  //     );
-
-  //     if (config.showHitZones) {
-  //       vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-  //       vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
-
-  //       vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-  //       vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
-
-  //       vehicle.mesh.userData.hitZone3.position.x = vehicleHitZone3.x;
-  //       vehicle.mesh.userData.hitZone3.position.y = vehicleHitZone3.y;
-  //     }
-
-  //     // The player hits another vehicle
-  //     if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-  //     if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
-  //     if (getDistance(playerHitZone1, vehicleHitZone3) < 40) return true;
-
-  //     // Another vehicle hits the player
-  //     if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-  //   }
-  // });
-
-  // if (hit) {
-  //   if (resultsElement) resultsElement.style.display = "flex";
-  //   renderer.setAnimationLoop(null); // Stop animation loop
-  // }
 }
 
 window.addEventListener("resize", () => {
