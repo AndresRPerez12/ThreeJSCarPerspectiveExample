@@ -931,21 +931,15 @@ function movePlayerCar(timeDelta) {
   const deltaY = forwardMovement * Math.sin(playerCar.rotation.z);
   playerCar.position.x += deltaX;
   playerCar.position.y += deltaY;
-  
-  // playerAngleMoved -= playerSpeed * timeDelta;
 
-  // const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
-
-  // const playerX = Math.cos(totalPlayerAngle) * trackRadius - arcCenterX;
-  // const playerY = Math.sin(totalPlayerAngle) * trackRadius;
-
-  // playerCar.position.x = playerX;
-  // playerCar.position.y = playerY;
-
-  // playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
-
-  // playerCar.position.x += playerSpeed.sideways;
-  // playerCar.position.y += playerSpeed.forward;
+  camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
+  const deltaCameraX = 200 * Math.cos(playerCar.rotation.z);
+  const deltaCameraY = 200 * Math.sin(playerCar.rotation.z);
+  camera.position.set(playerCar.position.x-deltaCameraX, playerCar.position.y-deltaCameraY, 150);
+  camera.up = new THREE.Vector3(0,0,1);
+  camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, 20);
+  camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
 }
 
 // function moveOtherVehicles(timeDelta) {
@@ -969,7 +963,7 @@ function movePlayerCar(timeDelta) {
 function getPlayerSpeed() {
   let speedObject = {
     forward: 0,
-    sideways: 0,
+    sideways: 0
   }
   if (accelerate == decelerate) speedObject.forward = 0;
   else if (accelerate) speedObject.forward = baseSpeedForward;
