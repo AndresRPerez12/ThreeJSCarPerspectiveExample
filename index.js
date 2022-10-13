@@ -46,7 +46,6 @@ const config = {
   grid: false // Show grid helper
 };
 
-let score;
 const baseSpeedForward = 0.3;
 const baseSpeedSideways = 0.004;
 
@@ -79,20 +78,6 @@ const arcCenterX =
 const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 
 const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
-
-const scoreElement = document.getElementById("score");
-const buttonsElement = document.getElementById("buttons");
-const instructionsElement = document.getElementById("instructions");
-const resultsElement = document.getElementById("results");
-const accelerateButton = document.getElementById("accelerate");
-const decelerateButton = document.getElementById("decelerate");
-const youtubeLogo = document.getElementById("youtube-main");
-
-setTimeout(() => {
-  if (ready) instructionsElement.style.opacity = 1;
-  buttonsElement.style.opacity = 1;
-  youtubeLogo.style.opacity = 1;
-}, 4000);
 
 // Initialize ThreeJs
 // Set up camera
@@ -157,28 +142,10 @@ document.body.appendChild(renderer.domElement);
 reset();
 
 function reset() {
-  // Reset position and score
+  // Reset position
   playerAngleMoved = 0;
-  score = 0;
-  scoreElement.innerText = "Press UP";
-
-  // Remove other vehicles
-  // otherVehicles.forEach((vehicle) => {
-  //   // Remove the vehicle from the scene
-  //   scene.remove(vehicle.mesh);
-
-  //   // If it has hit-zone helpers then remove them as well
-  //   if (vehicle.mesh.userData.hitZone1)
-  //     scene.remove(vehicle.mesh.userData.hitZone1);
-  //   if (vehicle.mesh.userData.hitZone2)
-  //     scene.remove(vehicle.mesh.userData.hitZone2);
-  //   if (vehicle.mesh.userData.hitZone3)
-  //     scene.remove(vehicle.mesh.userData.hitZone3);
-  // });
-  // otherVehicles = [];
-
-  resultsElement.style.display = "none";
-
+  playerCar.position.x = 0;
+  playerCar.position.y = 0;
   lastTimestamp = undefined;
 
   // Place the player's car to the starting position
@@ -193,10 +160,6 @@ function reset() {
 function startGame() {
   if (ready) {
     ready = false;
-    scoreElement.innerText = 0;
-    buttonsElement.style.opacity = 1;
-    instructionsElement.style.opacity = 0;
-    youtubeLogo.style.opacity = 1;
     renderer.setAnimationLoop(animation);
   }
 }
@@ -719,20 +682,6 @@ function Tree() {
   return tree;
 }
 
-accelerateButton.addEventListener("mousedown", function () {
-  startGame();
-  accelerate = true;
-});
-decelerateButton.addEventListener("mousedown", function () {
-  startGame();
-  decelerate = true;
-});
-accelerateButton.addEventListener("mouseup", function () {
-  accelerate = false;
-});
-decelerateButton.addEventListener("mouseup", function () {
-  decelerate = false;
-});
 window.addEventListener("keydown", function (event) {
   if (event.key == "ArrowUp") {
     startGame();
@@ -764,6 +713,7 @@ window.addEventListener("keydown", function (event) {
     return;
   }
 });
+
 window.addEventListener("keyup", function (event) {
   if (event.key == "ArrowUp") {
     accelerate = false;
@@ -790,21 +740,7 @@ function animation(timestamp) {
   }
 
   const timeDelta = timestamp - lastTimestamp;
-
   movePlayerCar(timeDelta);
-
-  const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI * 2));
-
-  // Update score if it changed
-  if (laps != score) {
-    score = laps;
-    scoreElement.innerText = score;
-  }
-
-  // Add a new vehicle at the beginning and with every 5th lap
-  // if (otherVehicles.length < (laps + 1) / 5) addVehicle();
-
-  // moveOtherVehicles(timeDelta);
 
   hitDetection();
 
@@ -904,14 +840,8 @@ window.addEventListener("resize", () => {
   console.log("resize", window.innerWidth, window.innerHeight);
 
   // Adjust camera
-  const newAspectRatio = window.innerWidth / window.innerHeight;
-  const adjustedCameraHeight = cameraWidth / newAspectRatio;
-
-  camera.top = adjustedCameraHeight / 2;
-  camera.bottom = adjustedCameraHeight / -2;
-  camera.updateProjectionMatrix(); // Must be called after change
-
-  positionScoreElement();
+  if( inOrthographicView ) setUpOrthographicCamera();
+  else setUpPerspectiveCamera();
 
   // Reset renderer
   renderer.setSize(window.innerWidth, window.innerHeight);
