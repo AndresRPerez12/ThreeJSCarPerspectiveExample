@@ -22,7 +22,7 @@ const treeTrunkColor = 0x4b3f2f;
 
 const wheelGeometry = new THREE.BoxBufferGeometry(12, 33, 12);
 const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-const treeTrunkGeometry = new THREE.BoxBufferGeometry(15, 15, 30);
+const treeTrunkGeometry = new THREE.BoxBufferGeometry(15, 15, 80);
 const treeTrunkMaterial = new THREE.MeshLambertMaterial({
   color: treeTrunkColor
 });
@@ -125,7 +125,8 @@ if (config.grid) {
 // Set up renderer
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
-  powerPreference: "high-performance"
+  powerPreference: "high-performance",
+  alpha: true
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 if (config.shadows) renderer.shadowMap.enabled = true;

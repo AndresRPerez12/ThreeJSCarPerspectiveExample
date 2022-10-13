@@ -18,6 +18,11 @@ a:visited {
   color: inherit;
 }
 
+canvas{
+  background: url(images/sky.jpg) no-repeat center center;
+  background-size: cover;
+}
+
 #score {
   position: absolute;
   font-family: "Press Start 2P", cursive;
