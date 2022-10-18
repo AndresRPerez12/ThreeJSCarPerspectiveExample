@@ -1,5 +1,7 @@
 import * as THREE from "three"
 
+Physijs.scripts.worker = 'physijs_worker.js'
+Physijs.scripts.ammo = 'ammo.js'
 window.focus(); // Capture keys right away (by default focus is on editor)
 
 // Pick a random value from an array
@@ -90,7 +92,9 @@ let camera = new THREE.OrthographicCamera(
 camera.position.set(0, -210, 300);
 camera.lookAt(0, 0, 0);
 
-const scene = new THREE.Scene();
+//const scene = new THREE.Scene();
+const scene = new Physijs.Scene;
+scene.setGravity(new THREE.Vector3(0,-10,-50))
 
 const playerCar = Car();
 scene.add(playerCar);
@@ -432,11 +436,13 @@ function getOuterField(mapWidth, mapHeight) {
 function renderMap(mapWidth, mapHeight) {
   const lineMarkingsTexture = getLineMarkings(mapWidth, mapHeight);
 
-  const planeGeometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight);
+  const planeGeometry =new THREE.RingGeometry( 100, 500, 32 );
+  //const planeGeometry = new THREE.PlaneBufferGeometry(mapWidth, mapHeight);
   const planeMaterial = new THREE.MeshLambertMaterial({
     map: lineMarkingsTexture
   });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  //const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  const plane = new Physijs.BoxMesh(planeGeometry, planeMaterial);
   plane.receiveShadow = true;
   plane.matrixAutoUpdate = false;
   scene.add(plane);
@@ -460,14 +466,22 @@ function renderMap(mapWidth, mapHeight) {
     { depth: 6, bevelEnabled: false }
   );
 
-  const fieldMesh = new THREE.Mesh(fieldGeometry, [
-    new THREE.MeshLambertMaterial({
-      // Either set a plain color or a texture depending on config
-      color: !config.curbs && lawnGreen,
-      map: config.curbs && curbsTexture
-    }),
-    new THREE.MeshLambertMaterial({ color: 0x23311c })
-  ]);
+  const fieldMesh = new Physijs.BoxMesh(fieldGeometry, [
+      new THREE.MeshLambertMaterial({
+        // Either set a plain color or a texture depending on config
+        color: !config.curbs && lawnGreen,
+        map: config.curbs && curbsTexture
+      }),
+      new THREE.MeshLambertMaterial({ color: 0x23311c })
+    ]);
+  //const fieldMesh = new THREE.Mesh(fieldGeometry, [
+  //  new THREE.MeshLambertMaterial({
+  //    // Either set a plain color or a texture depending on config
+  //    color: !config.curbs && lawnGreen,
+  //    map: config.curbs && curbsTexture
+  //  }),
+  //  new THREE.MeshLambertMaterial({ color: 0x23311c })
+  //]);
   fieldMesh.receiveShadow = true;
   fieldMesh.matrixAutoUpdate = false;
   scene.add(fieldMesh);
@@ -580,10 +594,15 @@ function Car() {
 
   const color = pickRandom(vehicleColors);
 
-  const main = new THREE.Mesh(
+  const main = new Physijs.BoxMesh(
     new THREE.BoxBufferGeometry(60, 30, 15),
     new THREE.MeshLambertMaterial({ color })
   );
+
+  //const main = new THREE.Mesh(
+  //  new THREE.BoxBufferGeometry(60, 30, 15),
+  //  new THREE.MeshLambertMaterial({ color })
+  //);
   main.position.z = 12;
   main.castShadow = true;
   main.receiveShadow = true;
@@ -602,7 +621,8 @@ function Car() {
 
   const carRightSideTexture = getCarSideTexture();
 
-  const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(33, 24, 12), [
+    
+  const cabin = new Physijs.BoxMesh(new THREE.BoxBufferGeometry(33, 24, 12), [
     new THREE.MeshLambertMaterial({ map: carFrontTexture }),
     new THREE.MeshLambertMaterial({ map: carBackTexture }),
     new THREE.MeshLambertMaterial({ map: carLeftSideTexture }),
@@ -610,6 +630,15 @@ function Car() {
     new THREE.MeshLambertMaterial({ color: 0xffffff }), // top
     new THREE.MeshLambertMaterial({ color: 0xffffff }) // bottom
   ]);
+
+  //const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(33, 24, 12), [
+  //  new THREE.MeshLambertMaterial({ map: carFrontTexture }),
+  //  new THREE.MeshLambertMaterial({ map: carBackTexture }),
+  //  new THREE.MeshLambertMaterial({ map: carLeftSideTexture }),
+  //  new THREE.MeshLambertMaterial({ map: carRightSideTexture }),
+  //  new THREE.MeshLambertMaterial({ color: 0xffffff }), // top
+  //  new THREE.MeshLambertMaterial({ color: 0xffffff }) // bottom
+  //]);
   cabin.position.x = -6;
   cabin.position.z = 25.5;
   cabin.castShadow = true;
@@ -628,7 +657,8 @@ function Car() {
 }
 
 function Wheel() {
-  const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+  //const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+  const wheel = new Physijs.BoxMesh(wheelGeometry, wheelMaterial);
   wheel.position.z = 6;
   wheel.castShadow = false;
   wheel.receiveShadow = false;
@@ -638,7 +668,8 @@ function Wheel() {
 function Tree() {
   const tree = new THREE.Group();
 
-  const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
+  //const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
+  const trunk = new Physijs.BoxMesh(treeTrunkGeometry, treeTrunkMaterial);
   trunk.position.z = 10;
   trunk.castShadow = true;
   trunk.receiveShadow = true;
@@ -648,10 +679,15 @@ function Tree() {
   const treeHeights = [45, 60, 75];
   const height = pickRandom(treeHeights);
 
-  const crown = new THREE.Mesh(
+  const crown = new Physijs.SphereMesh(
     new THREE.SphereGeometry(height / 2, 30, 30),
     treeCrownMaterial
   );
+
+  //const crown = new THREE.Mesh(
+  //  new THREE.SphereGeometry(height / 2, 30, 30),
+  //  treeCrownMaterial
+  //);
   crown.position.z = height / 2 + 30;
   crown.castShadow = true;
   crown.receiveShadow = false;
@@ -719,7 +755,7 @@ function animation(timestamp) {
 
   const timeDelta = timestamp - lastTimestamp;
   movePlayerCar(timeDelta);
-
+  scene.simulate() //Physics
   renderer.render(scene, camera);
   lastTimestamp = timestamp;
 }
