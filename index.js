@@ -14,7 +14,7 @@ const vehicleColors = [
   0xff9f1c /*0xa52523, 0xbdb638, 0x78b14b*/
 ];
 
-const carStartingHeight = 50;
+const carStartingHeight = 0;
 
 const lawnGreen = "#67C240";
 const trackColor = "#546E90";
@@ -33,7 +33,6 @@ const treeCrownMaterial = new THREE.MeshLambertMaterial({
 });
 
 const config = {
-  showHitZones: false,
   shadows: true, // Use shadow
   trees: true, // Add trees to the map
   curbs: true, // Show texture on the extruded geometry
@@ -625,24 +624,7 @@ function Car() {
   frontWheel.position.x = 18;
   car.add(frontWheel);
 
-  if (config.showHitZones) {
-    car.userData.hitZone1 = HitZone();
-    car.userData.hitZone2 = HitZone();
-  }
-
   return car;
-}
-
-function HitZone() {
-  const hitZone = new THREE.Mesh(
-    new THREE.CylinderGeometry(20, 20, 60, 30),
-    new THREE.MeshLambertMaterial({ color: 0xff0000 })
-  );
-  hitZone.position.z = 25;
-  hitZone.rotation.x = Math.PI / 2;
-
-  scene.add(hitZone);
-  return hitZone;
 }
 
 function Wheel() {
@@ -738,8 +720,6 @@ function animation(timestamp) {
   const timeDelta = timestamp - lastTimestamp;
   movePlayerCar(timeDelta);
 
-  hitDetection();
-
   renderer.render(scene, camera);
   lastTimestamp = timestamp;
 }
@@ -798,38 +778,6 @@ function setUpPerspectiveCamera(){
   camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, playerCar.position.z + 20);
   camera.updateProjectionMatrix();
   renderer.render(scene, camera);
-}
-
-function getHitZonePosition(center, angle, clockwise, distance) {
-  const directionAngle = angle + clockwise ? -Math.PI / 2 : +Math.PI / 2;
-  return {
-    x: center.x + Math.cos(directionAngle) * distance,
-    y: center.y + Math.sin(directionAngle) * distance
-  };
-}
-
-function hitDetection() {
-  const playerHitZone1 = getHitZonePosition(
-    playerCar.position,
-    playerAngleInitial + playerAngleMoved,
-    true,
-    15
-  );
-
-  const playerHitZone2 = getHitZonePosition(
-    playerCar.position,
-    playerAngleInitial + playerAngleMoved,
-    true,
-    -15
-  );
-
-  if (config.showHitZones) {
-    playerCar.userData.hitZone1.position.x = playerHitZone1.x;
-    playerCar.userData.hitZone1.position.y = playerHitZone1.y;
-
-    playerCar.userData.hitZone2.position.x = playerHitZone2.x;
-    playerCar.userData.hitZone2.position.y = playerHitZone2.y;
-  }
 }
 
 window.addEventListener("resize", () => {
