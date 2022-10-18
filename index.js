@@ -14,6 +14,8 @@ const vehicleColors = [
   0xff9f1c /*0xa52523, 0xbdb638, 0x78b14b*/
 ];
 
+const carStartingHeight = 50;
+
 const lawnGreen = "#67C240";
 const trackColor = "#546E90";
 const edgeColor = "#725F48";
@@ -139,6 +141,7 @@ function reset() {
   playerAngleMoved = 0;
   playerCar.position.x = 0;
   playerCar.position.y = 0;
+  playerCar.position.z = carStartingHeight;
   lastTimestamp = undefined;
 
   // Place the player's car to the starting position
@@ -790,9 +793,9 @@ function setUpPerspectiveCamera(){
   camera = new THREE.PerspectiveCamera(45, aspectRatio , 1, 1000);
   const deltaCameraX = 200 * Math.cos(playerCar.rotation.z);
   const deltaCameraY = 200 * Math.sin(playerCar.rotation.z);
-  camera.position.set(playerCar.position.x-deltaCameraX, playerCar.position.y-deltaCameraY, 150);
+  camera.position.set(playerCar.position.x-deltaCameraX, playerCar.position.y-deltaCameraY, playerCar.position.z + 150);
   camera.up = new THREE.Vector3(0,0,1);
-  camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, 20);
+  camera.lookAt(playerCar.position.x+deltaCameraX, playerCar.position.y+deltaCameraY, playerCar.position.z + 20);
   camera.updateProjectionMatrix();
   renderer.render(scene, camera);
 }
