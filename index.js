@@ -1,8 +1,28 @@
 setup();
 
 function setup() {
+  importThree();
+}
+
+function draw() {}
+
+function importThree(){
   const script = document.createElement('script');
   script.src = 'https://threejs.org/build/three.js';
+  script.async = true;
+  script.onload = () => {
+    console.log('Script loaded successfuly');
+    importCannon();
+  };
+  script.onerror = () => {
+    console.log('Error occurred while loading script');
+  };
+  document.body.appendChild(script);
+}
+
+function importCannon(){
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.js';
   script.async = true;
   script.onload = () => {
     console.log('Script loaded successfuly');
@@ -13,8 +33,6 @@ function setup() {
   };
   document.body.appendChild(script);
 }
-
-function draw() {}
 
 function setUpApp() {
   window.focus(); // Capture keys right away (by default focus is on editor)
