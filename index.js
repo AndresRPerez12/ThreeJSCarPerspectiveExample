@@ -33,7 +33,9 @@ function setUpApp() {
 
   const lavaRed = "red";
   const trackColor = "black";
-  const blockColor = "cyan";
+  const blockColor = "#224B0C";
+  const mountainColor = "brown";
+  const baseColor = "#AC4425";
 
   const wheelGeometry = new THREE.BoxBufferGeometry(12, 33, 12);
   const wheelMaterial = new THREE.MeshLambertMaterial({
@@ -83,6 +85,8 @@ function setUpApp() {
   var lavaMesh, lavaBody;
   var trackMesh, trackBody;
   var blockMesh, blockBody;
+  var mountainMesh, mountainBody;
+  var baseMesh, baseBody;
   const groundPhysMat = new CANNON.Material();
   const carPhysMat = new CANNON.Material();
   const groundBoxContactMat = new CANNON.ContactMaterial(
@@ -105,11 +109,12 @@ function setUpApp() {
     cameraWidth / 2, // right
     cameraHeight / 2, // top
     cameraHeight / -2, // bottom
-    50, // near plane
-    700 // far plane
+    5, // near plane
+    1000 // far plane
   );
 
-  camera.position.set(0, -210, 300);
+  camera.position.set(-100, -210, 300);
+  camera.up = new THREE.Vector3(0, 0, 1);
   camera.lookAt(0, 0, 0);
 
   const scene = new THREE.Scene();
@@ -168,8 +173,8 @@ function setUpApp() {
   function reset() {
     // Reset position
     playerAngleMoved = 0;
-    playerCar.position.x = -100;
-    playerCar.position.y = -100;
+    playerCar.position.x = -300;
+    playerCar.position.y = -300;
     playerCar.position.z = 50;
     playerCar.rotation.x = 0;
     playerCar.rotation.y = 0;
@@ -204,7 +209,7 @@ function setUpApp() {
     }
     const trackDimensions = {
       x: 800,
-      y: 400,
+      y: 700,
       pos_z: 10
     }
     const blockDimensions = {
@@ -212,6 +217,17 @@ function setUpApp() {
       y: 50,
       pos_z: 0
     }
+    const mountainDimensions = {
+      x: 150,
+      y: 100,
+      pos_z: 0
+    }
+    const baseDimensions = {
+      x: 400,
+      y: 400,
+      pos_z: -200
+    }
+
 
     // Lava
     lavaBody = new CANNON.Body({
@@ -251,14 +267,14 @@ function setUpApp() {
     
     // Block
     blockBody = new CANNON.Body({
-      shape: new CANNON.Box(new CANNON.Vec3(blockDimensions.x/2, blockDimensions.y/2, 300)),
+      shape: new CANNON.Box(new CANNON.Vec3(blockDimensions.x/2, blockDimensions.y/2, 1000)),
       type: CANNON.Body.STATIC,
       material: groundPhysMat,
       position: new CANNON.Vec3(0, 0, blockDimensions.pos_z),
     });
     world.addBody(blockBody);
 
-    const blockGeo = new THREE.BoxGeometry(blockDimensions.x, blockDimensions.y, 300);
+    const blockGeo = new THREE.BoxGeometry(blockDimensions.x, blockDimensions.y, 1000);
     const blockMat = new THREE.MeshBasicMaterial({ 
       color: blockColor,
       side: THREE.DoubleSide,
@@ -266,6 +282,42 @@ function setUpApp() {
     });
     blockMesh = new THREE.Mesh(blockGeo, blockMat);
     scene.add(blockMesh);
+
+    // Mountain
+    mountainBody = new CANNON.Body({
+      shape: new CANNON.Box(new CANNON.Vec3(mountainDimensions.x/2, mountainDimensions.y/2, 500)),
+      type: CANNON.Body.STATIC,
+      material: groundPhysMat,
+      position: new CANNON.Vec3(0, 0, mountainDimensions.pos_z),
+    });
+    world.addBody(mountainBody);
+
+    const mountainGeo = new THREE.BoxGeometry(mountainDimensions.x, mountainDimensions.y, 500);
+    const mountainMat = new THREE.MeshBasicMaterial({ 
+      color: mountainColor,
+      side: THREE.DoubleSide,
+      wireframe: false 
+    });
+    mountainMesh = new THREE.Mesh(mountainGeo, mountainMat);
+    scene.add(mountainMesh);
+
+    // Base
+    baseBody = new CANNON.Body({
+      shape: new CANNON.Box(new CANNON.Vec3(baseDimensions.x/2, baseDimensions.y/2, 500)),
+      type: CANNON.Body.STATIC,
+      material: groundPhysMat,
+      position: new CANNON.Vec3(0, 0, baseDimensions.pos_z),
+    });
+    world.addBody(baseBody);
+
+    const baseGeo = new THREE.BoxGeometry(baseDimensions.x, baseDimensions.y, 500);
+    const baseMat = new THREE.MeshBasicMaterial({ 
+      color: baseColor,
+      side: THREE.DoubleSide,
+      wireframe: false 
+    });
+    baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    scene.add(baseMesh);
   }
 
   function getCarFrontTexture() {
@@ -494,11 +546,12 @@ function setUpApp() {
       cameraWidth / 2, // right
       cameraHeight / 2, // top
       cameraHeight / -2, // bottom
-      50, // near plane
-      700 // far plane
+      5, // near plane
+      1000 // far plane
     );
 
-    camera.position.set(0, -210, 300);
+    camera.position.set(100, -210, 300);
+    camera.up = new THREE.Vector3(0, 0, 1);
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
   }
