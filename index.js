@@ -116,7 +116,7 @@ function setUpApp() {
   
   const playerCar = Car();
   const carBody = new CANNON.Body({
-      mass: 8,
+      mass: 20,
       shape: new CANNON.Box(new CANNON.Vec3(60, 30, 15)),
       material: carPhysMat
   });
@@ -433,9 +433,11 @@ function setUpApp() {
     const timeDelta = timestamp - lastTimestamp;
     movePlayerCar(timeDelta);
 
+    // Apply gravity
     const timeStep = 1 / 60;
     world.step(timeStep);
 
+    // Update THREE car position
     playerCar.position.copy(carBody.position);
     playerCar.quaternion.copy(carBody.quaternion);
 
@@ -461,17 +463,17 @@ function setUpApp() {
     const forwardMovement = playerSpeed.forward * timeDelta;
     const deltaX = forwardMovement * Math.cos(playerCar.rotation.z);
     const deltaY = forwardMovement * Math.sin(playerCar.rotation.z);
-    playerCar.position.x += deltaX;
-    playerCar.position.y += deltaY;
+    // playerCar.position.x += deltaX;
+    // playerCar.position.y += deltaY;
 
-    // Update THREE car position
-    carBody.position.x = playerCar.position.x;
-    carBody.position.y = playerCar.position.y;
+    const impulse = new CANNON.Vec3(playerSpeed.forward, 0, -1);
+    carBody.applyLocalImpulse(impulse,new CANNON.Vec3(0, 0, 0));
+
     if (inOrthographicView == false) setUpPerspectiveCamera();
   }
 
   function getPlayerSpeed() {
-    const baseSpeedForward = 0.3;
+    const baseSpeedForward = 20;
     const baseSpeedSideways = 0.004;
     let speedObject = {
       forward: 0,
