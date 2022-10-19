@@ -31,24 +31,13 @@ function setUpApp() {
     0xff9f1c /*0xa52523, 0xbdb638, 0x78b14b*/
   ];
 
-  const carStartingHeight = 100;
-
-  const lawnGreen = "#67C240";
-  const trackColor = "#546E90";
-  const edgeColor = "#725F48";
-  const treeCrownColor = 0x498c2c;
-  const treeTrunkColor = 0x4b3f2f;
+  const lavaRed = "red";
+  const trackColor = "black";
+  const blockColor = "cyan";
 
   const wheelGeometry = new THREE.BoxBufferGeometry(12, 33, 12);
   const wheelMaterial = new THREE.MeshLambertMaterial({
     color: 0x333333
-  });
-  const treeTrunkGeometry = new THREE.BoxBufferGeometry(15, 15, 80);
-  const treeTrunkMaterial = new THREE.MeshLambertMaterial({
-    color: treeTrunkColor
-  });
-  const treeCrownMaterial = new THREE.MeshLambertMaterial({
-    color: treeCrownColor
   });
 
   const config = {
@@ -94,13 +83,18 @@ function setUpApp() {
   // Set up physics
   const world = new CANNON.World();
   world.gravity.set(0, 0, -9.82); 
-  var groundMesh, groundBody;
+  var lavaMesh, lavaBody;
+  var trackMesh, trackBody;
+  var blockMesh, blockBody;
   const groundPhysMat = new CANNON.Material();
   const carPhysMat = new CANNON.Material();
   const groundBoxContactMat = new CANNON.ContactMaterial(
       groundPhysMat,
       carPhysMat,
-      {friction: 0.04}
+      {
+        friction: 0.04,
+        restitution: 0.01
+      }
   );
 
   // Initialize ThreeJs
@@ -177,9 +171,9 @@ function setUpApp() {
   function reset() {
     // Reset position
     playerAngleMoved = 0;
-    playerCar.position.x = 0;
-    playerCar.position.y = 0;
-    playerCar.position.z = carStartingHeight;
+    playerCar.position.x = -100;
+    playerCar.position.y = -100;
+    playerCar.position.z = 50;
     lastTimestamp = undefined;
 
     // Reset physics
@@ -202,293 +196,76 @@ function setUpApp() {
     }
   }
 
-  function getLineMarkings(mapWidth, mapHeight) {
-    const canvas = document.createElement("canvas");
-    canvas.width = mapWidth;
-    canvas.height = mapHeight;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = trackColor;
-    context.fillRect(0, 0, mapWidth, mapHeight);
-
-    context.lineWidth = 2;
-    context.strokeStyle = "#E0FFFF";
-    context.setLineDash([10, 14]);
-
-    // Left circle
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      trackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    // Right circle
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      trackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    return new THREE.CanvasTexture(canvas);
-  }
-
-  function getCurbsTexture(mapWidth, mapHeight) {
-    const canvas = document.createElement("canvas");
-    canvas.width = mapWidth;
-    canvas.height = mapHeight;
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = lawnGreen;
-    context.fillRect(0, 0, mapWidth, mapHeight);
-
-    // Extra big
-    context.lineWidth = 65;
-    context.strokeStyle = "#A2FF75";
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      arcAngle1,
-      -arcAngle1
-    );
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      Math.PI + arcAngle2,
-      Math.PI - arcAngle2,
-      true
-    );
-    context.stroke();
-
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      Math.PI + arcAngle1,
-      Math.PI - arcAngle1
-    );
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      arcAngle2,
-      -arcAngle2,
-      true
-    );
-    context.stroke();
-
-    // Extra small
-    context.lineWidth = 60;
-    context.strokeStyle = lawnGreen;
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      arcAngle1,
-      -arcAngle1
-    );
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      Math.PI + arcAngle2,
-      Math.PI - arcAngle2,
-      true
-    );
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      Math.PI + arcAngle1,
-      Math.PI - arcAngle1
-    );
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      arcAngle2,
-      -arcAngle2,
-      true
-    );
-    context.stroke();
-
-    // Base
-    context.lineWidth = 6;
-    context.strokeStyle = edgeColor;
-
-    // Outer circle left
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    // Outer circle right
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      outerTrackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    // Inner circle left
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 - arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    // Inner circle right
-    context.beginPath();
-    context.arc(
-      mapWidth / 2 + arcCenterX,
-      mapHeight / 2,
-      innerTrackRadius,
-      0,
-      Math.PI * 2
-    );
-    context.stroke();
-
-    return new THREE.CanvasTexture(canvas);
-  }
-
-  function getLeftIsland() {
-    const islandLeft = new THREE.Shape();
-
-    islandLeft.absarc(
-      -arcCenterX,
-      0,
-      innerTrackRadius,
-      arcAngle1,
-      -arcAngle1,
-      false
-    );
-
-    islandLeft.absarc(
-      arcCenterX,
-      0,
-      outerTrackRadius,
-      Math.PI + arcAngle2,
-      Math.PI - arcAngle2,
-      true
-    );
-
-    return islandLeft;
-  }
-
-  function getMiddleIsland() {
-    const islandMiddle = new THREE.Shape();
-
-    islandMiddle.absarc(
-      -arcCenterX,
-      0,
-      innerTrackRadius,
-      arcAngle3,
-      -arcAngle3,
-      true
-    );
-
-    islandMiddle.absarc(
-      arcCenterX,
-      0,
-      innerTrackRadius,
-      Math.PI + arcAngle3,
-      Math.PI - arcAngle3,
-      true
-    );
-
-    return islandMiddle;
-  }
-
-  function getRightIsland() {
-    const islandRight = new THREE.Shape();
-
-    islandRight.absarc(
-      arcCenterX,
-      0,
-      innerTrackRadius,
-      Math.PI - arcAngle1,
-      Math.PI + arcAngle1,
-      true
-    );
-
-    islandRight.absarc(
-      -arcCenterX,
-      0,
-      outerTrackRadius,
-      -arcAngle2,
-      arcAngle2,
-      false
-    );
-
-    return islandRight;
-  }
-
-  function getOuterField(mapWidth, mapHeight) {
-    const field = new THREE.Shape();
-
-    field.moveTo(-mapWidth / 2, -mapHeight / 2);
-    field.lineTo(0, -mapHeight / 2);
-
-    field.absarc(-arcCenterX, 0, outerTrackRadius, -arcAngle4, arcAngle4, true);
-
-    field.absarc(
-      arcCenterX,
-      0,
-      outerTrackRadius,
-      Math.PI - arcAngle4,
-      Math.PI + arcAngle4,
-      true
-    );
-
-    field.lineTo(0, -mapHeight / 2);
-    field.lineTo(mapWidth / 2, -mapHeight / 2);
-    field.lineTo(mapWidth / 2, mapHeight / 2);
-    field.lineTo(-mapWidth / 2, mapHeight / 2);
-
-    return field;
-  }
-
   function renderMap() {
-    groundBody = new CANNON.Body({
-      shape: new CANNON.Box(new CANNON.Vec3(75, 75, 0.1)),
+    const lavaDimensions = {
+      x: 2000,
+      y: 2000,
+      pos_z: -200
+    }
+    const trackDimensions = {
+      x: 800,
+      y: 400,
+      pos_z: 10
+    }
+    const blockDimensions = {
+      x: 100,
+      y: 50,
+      pos_z: 0
+    }
+
+    // Lava
+    lavaBody = new CANNON.Body({
+      shape: new CANNON.Box(new CANNON.Vec3(lavaDimensions.x/2, lavaDimensions.y/2, 0.1)),
       type: CANNON.Body.STATIC,
       material: groundPhysMat,
-      position: new CANNON.Vec3(0, 0, 0),
+      position: new CANNON.Vec3(0, 0, lavaDimensions.pos_z),
     });
-    world.addBody(groundBody);
+    world.addBody(lavaBody);
 
-    const groundGeo = new THREE.PlaneGeometry(150, 150);
-    const groundMat = new THREE.MeshBasicMaterial({ 
-      color: 'red',
+    const lavaGeo = new THREE.PlaneGeometry(lavaDimensions.x, lavaDimensions.y);
+    const lavaMat = new THREE.MeshBasicMaterial({ 
+      color: lavaRed,
       side: THREE.DoubleSide,
       wireframe: false 
     });
-    groundMesh = new THREE.Mesh(groundGeo, groundMat);
-    scene.add(groundMesh);
+    lavaMesh = new THREE.Mesh(lavaGeo, lavaMat);
+    scene.add(lavaMesh);
+    
+    // Track
+    trackBody = new CANNON.Body({
+      shape: new CANNON.Box(new CANNON.Vec3(trackDimensions.x/2, trackDimensions.y/2, 0.1)),
+      type: CANNON.Body.STATIC,
+      material: groundPhysMat,
+      position: new CANNON.Vec3(0, 0, trackDimensions.pos_z),
+    });
+    world.addBody(trackBody);
+
+    const trackGeo = new THREE.PlaneGeometry(trackDimensions.x, trackDimensions.y);
+    const trackMat = new THREE.MeshBasicMaterial({ 
+      color: trackColor,
+      side: THREE.DoubleSide,
+      wireframe: false 
+    });
+    trackMesh = new THREE.Mesh(trackGeo, trackMat);
+    scene.add(trackMesh);
+    
+    // Block
+    blockBody = new CANNON.Body({
+      shape: new CANNON.Box(new CANNON.Vec3(blockDimensions.x/2, blockDimensions.y/2, 300)),
+      type: CANNON.Body.STATIC,
+      material: groundPhysMat,
+      position: new CANNON.Vec3(0, 0, blockDimensions.pos_z),
+    });
+    world.addBody(blockBody);
+
+    const blockGeo = new THREE.BoxGeometry(blockDimensions.x, blockDimensions.y, 300);
+    const blockMat = new THREE.MeshBasicMaterial({ 
+      color: blockColor,
+      side: THREE.DoubleSide,
+      wireframe: false 
+    });
+    blockMesh = new THREE.Mesh(blockGeo, blockMat);
+    scene.add(blockMesh);
   }
 
   function getCarFrontTexture() {
@@ -596,31 +373,6 @@ function setUpApp() {
     return wheel;
   }
 
-  function Tree() {
-    const tree = new THREE.Group();
-
-    const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
-    trunk.position.z = 10;
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
-    trunk.matrixAutoUpdate = false;
-    tree.add(trunk);
-
-    const treeHeights = [45, 60, 75];
-    const height = pickRandom(treeHeights);
-
-    const crown = new THREE.Mesh(
-      new THREE.SphereGeometry(height / 2, 30, 30),
-      treeCrownMaterial
-    );
-    crown.position.z = height / 2 + 30;
-    crown.castShadow = true;
-    crown.receiveShadow = false;
-    tree.add(crown);
-
-    return tree;
-  }
-
   window.addEventListener("keydown", function (event) {
     if (event.key == "ArrowUp") {
       startGame();
@@ -684,8 +436,12 @@ function setUpApp() {
     const timeStep = 1 / 60;
     world.step(timeStep);
 
-    groundMesh.position.copy(groundBody.position);
-    groundMesh.quaternion.copy(groundBody.quaternion);
+    lavaMesh.position.copy(lavaBody.position);
+    lavaMesh.quaternion.copy(lavaBody.quaternion);
+    trackMesh.position.copy(trackBody.position);
+    trackMesh.quaternion.copy(trackBody.quaternion);
+    blockMesh.position.copy(blockBody.position);
+    blockMesh.quaternion.copy(blockBody.quaternion);
 
     renderer.render(scene, camera);
     lastTimestamp = timestamp;
