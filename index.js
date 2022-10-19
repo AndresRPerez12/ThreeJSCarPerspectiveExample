@@ -110,10 +110,10 @@ function setUpApp() {
     cameraHeight / 2, // top
     cameraHeight / -2, // bottom
     5, // near plane
-    1000 // far plane
+    2000 // far plane
   );
 
-  camera.position.set(-100, -210, 300);
+  camera.position.set(200, -500, 630);
   camera.up = new THREE.Vector3(0, 0, 1);
   camera.lookAt(0, 0, 0);
 
@@ -285,14 +285,14 @@ function setUpApp() {
 
     // Mountain
     mountainBody = new CANNON.Body({
-      shape: new CANNON.Box(new CANNON.Vec3(mountainDimensions.x/2, mountainDimensions.y/2, 500)),
+      shape: new CANNON.Box(new CANNON.Vec3(mountainDimensions.x/2, mountainDimensions.y/2, 700)),
       type: CANNON.Body.STATIC,
       material: groundPhysMat,
       position: new CANNON.Vec3(0, 0, mountainDimensions.pos_z),
     });
     world.addBody(mountainBody);
 
-    const mountainGeo = new THREE.BoxGeometry(mountainDimensions.x, mountainDimensions.y, 500);
+    const mountainGeo = new THREE.BoxGeometry(mountainDimensions.x, mountainDimensions.y, 700);
     const mountainMat = new THREE.MeshBasicMaterial({ 
       color: mountainColor,
       side: THREE.DoubleSide,
@@ -547,10 +547,10 @@ function setUpApp() {
       cameraHeight / 2, // top
       cameraHeight / -2, // bottom
       5, // near plane
-      1000 // far plane
+      2000 // far plane
     );
 
-    camera.position.set(100, -210, 300);
+    camera.position.set(200, -500, 630);
     camera.up = new THREE.Vector3(0, 0, 1);
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
