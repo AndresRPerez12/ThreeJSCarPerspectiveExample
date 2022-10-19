@@ -47,9 +47,6 @@ function setUpApp() {
     grid: false // Show grid helper
   };
 
-  const baseSpeedForward = 0.3;
-  const baseSpeedSideways = 0.004;
-
   const playerAngleInitial = Math.PI;
   let playerAngleMoved;
   let accelerate = false; // Is the player accelerating
@@ -93,7 +90,7 @@ function setUpApp() {
       carPhysMat,
       {
         friction: 0.04,
-        restitution: 0.01
+        restitution: 0
       }
   );
 
@@ -174,6 +171,9 @@ function setUpApp() {
     playerCar.position.x = -100;
     playerCar.position.y = -100;
     playerCar.position.z = 50;
+    playerCar.rotation.x = 0;
+    playerCar.rotation.y = 0;
+    playerCar.rotation.z = 0;
     lastTimestamp = undefined;
 
     // Reset physics
@@ -436,6 +436,9 @@ function setUpApp() {
     const timeStep = 1 / 60;
     world.step(timeStep);
 
+    playerCar.position.copy(carBody.position);
+    playerCar.quaternion.copy(carBody.quaternion);
+
     lavaMesh.position.copy(lavaBody.position);
     lavaMesh.quaternion.copy(lavaBody.quaternion);
     trackMesh.position.copy(trackBody.position);
@@ -453,6 +456,7 @@ function setUpApp() {
     playerAngleMoved += playerSpeed.sideways * timeDelta;
     const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
     playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
+    carBody.quaternion.copy(playerCar.quaternion);
 
     const forwardMovement = playerSpeed.forward * timeDelta;
     const deltaX = forwardMovement * Math.cos(playerCar.rotation.z);
@@ -463,12 +467,12 @@ function setUpApp() {
     // Update THREE car position
     carBody.position.x = playerCar.position.x;
     carBody.position.y = playerCar.position.y;
-    playerCar.position.copy(carBody.position);
-    // playerCar.quaternion.copy(carBody.quaternion);
     if (inOrthographicView == false) setUpPerspectiveCamera();
   }
 
   function getPlayerSpeed() {
+    const baseSpeedForward = 0.3;
+    const baseSpeedSideways = 0.004;
     let speedObject = {
       forward: 0,
       sideways: 0
