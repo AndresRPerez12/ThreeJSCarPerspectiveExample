@@ -31,11 +31,11 @@ function setUpApp() {
     0xff9f1c /*0xa52523, 0xbdb638, 0x78b14b*/
   ];
 
-  const lavaRed = "red";
+  const lavaRed = "#7cfc00";
   const trackColor = "black";
-  const blockColor = "#224B0C";
-  const mountainColor = "brown";
-  const baseColor = "#AC4425";
+  const blockColor = "#BF9742";
+  const mountainColor = "#A47E3B";
+  const baseColor = "#61481C";
 
   const wheelGeometry = new THREE.BoxBufferGeometry(12, 33, 12);
   const wheelMaterial = new THREE.MeshLambertMaterial({
